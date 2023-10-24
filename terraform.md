@@ -1,4 +1,22 @@
 
+### Typical Terraform Project Structure
+
+```
+# Root module
+LICENSE        -> A License to be used for the project
+readme.md      -> documentation under Markdown format
+terraform.tf   -> set TF version constraint, and provider version constraint
+variables.tf   -> declare variables required in the project
+main.tf        -> resource description
+default.tfvars -> declare variables default values
+outputs.tf     -> variables available as output
+# Sub modules
+modules/terraform_PROVIDER_NAME
+    variables.tf   -> declare variables required in the project
+    main.tf        -> resource description
+    outputs.tf     -> variables available as output
+
+```
 
 ### Pass Variables to Terraform
 * Pass a variable from command line
