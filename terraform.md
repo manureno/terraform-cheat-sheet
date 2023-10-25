@@ -85,3 +85,62 @@ terraform import RESOURCE_NAME RESOURCE_ID
 ```
 terraform refresh
 ```
+
+###Targeting Individual Resources
+In some situations, such as issue during the application of a plan, or complex infrastructure divergence,
+there ay be a need to manage resource individually.
+NB: This is an advanced usage that need extreme care to end-up with a consistent configuration/state/infrastructure 
+
+* Apply change on a resource
+```
+terraform apply -target="RESOURCE_NAME"
+```
+
+* Destroy a resource
+```
+terraform destroy -target="RESOURCE_NAME"
+```
+### Manage Resource Drift
+* Check the drift between state and resources
+```
+terraform plan -refresh-only
+```
+* Update state file to reflect resource actual state
+```
+terraform apply -refresh-only
+```
+* Associate a resource configuration with an existing one (update the state file)
+  * RESOURCE_NAME is the name in the .tf file,  RESOURCE_ID is the existing infrastructure provider ID
+```
+terraform import RESOURCE_NAME RESOURCE_ID
+```
+
+### Troubleshooting
+4 types of issues
+* Language errors in the HCL scripts
+* State errors in the state file
+* Core errors in the Terraform application itself
+* Provider errors
+
+* Format code to check syntax errors
+```
+terraform fmt
+```
+
+* Check configuration in the context of providers expectations
+```
+terraform validate
+```
+* Enable logging with levels in (TRACE, DEBUG, INFO, WARN or ERROR)
+```
+export TF_LOG_CORE=TRACE
+```
+```
+export TF_LOG_PROVIDER=TRACE
+```
+* Save logs in a file
+```
+export TF_LOG_PATH=logs.txt
+```
+
+ 
