@@ -1,5 +1,5 @@
 
-### Typical Terraform Project Structure
+## Typical Terraform Project Structure
 
 ```
 # Root module
@@ -21,7 +21,7 @@ A _Nested Module_ is a reference to another module from the current module, it c
 * _Child Module_ if it is located externally
 * _Sub Module_ if it is embedded in the current workspace
 
-### Pass Variables to Terraform
+## Pass Variables to Terraform
 * Pass a variable from command line
 ```
 terraform COMMAND -var="variable_name=value"
@@ -44,15 +44,15 @@ export TF_VAR_variable_name=value
 terraform COMMAND
 ```
 
-###Terraform State
-####State File
+##Terraform State
+###State File
 State file contain the infrastructure state as known by Terraform.  
 It is a JSON file that should not be edited.   
 It contains:
 * **Resources**, which can be of type "data", ie a resource managed outside Terraform as a result of the query of a data block, or "managed" ie an actual resource.
 * **Dependencies**, which is the dependency tree computed out of the Terraform script.
 
-####Common Commands
+###Common Commands
 * Show state file :
 ```
 terraform show
@@ -68,7 +68,7 @@ terraform plan -replace="RESOURCE_NAME"
 ```
 terraform apply -replace RESOURCE_NAME
 ```
-####Advanced Commands
+###Advanced Commands
 * Copy a resource from one state to another
 ```
 terraform state mv -state-out=TARGET_STATE_FILE SOURCE_RESOURCE_NAME TARGET_RESOURCE_NAME
@@ -86,7 +86,7 @@ terraform import RESOURCE_NAME RESOURCE_ID
 terraform refresh
 ```
 
-###Targeting Individual Resources
+##Targeting Individual Resources
 In some situations, such as issue during the application of a plan, or complex infrastructure divergence,
 there ay be a need to manage resource individually.
 NB: This is an advanced usage that need extreme care to end-up with a consistent configuration/state/infrastructure 
@@ -100,7 +100,7 @@ terraform apply -target="RESOURCE_NAME"
 ```
 terraform destroy -target="RESOURCE_NAME"
 ```
-### Manage Resource Drift
+## Manage Resource Drift
 * Check the drift between state and resources
 ```
 terraform plan -refresh-only
@@ -115,7 +115,7 @@ terraform apply -refresh-only
 terraform import RESOURCE_NAME RESOURCE_ID
 ```
 
-### Troubleshooting
+## Troubleshooting
 4 types of issues
 * Language errors in the HCL scripts
 * State errors in the state file
@@ -143,4 +143,56 @@ export TF_LOG_PROVIDER=TRACE
 export TF_LOG_PATH=logs.txt
 ```
 
- 
+## Terraform Cloud
+### Login to Terrafrom Cloud
+* Login command will open Terraform Cloud page in a browser in order to generate an authentication token
+  * Once logged in, the token is stored in a "credentials.tfrc.json" file (exact location depends on platform), and can 
+  be reused for subsequent logins. 
+```
+terraform login
+```
+
+### Migrate State to Terraform Cloud
+
+* Migrating a state in Terraform Cloud requires a "cloud" block be declared 
+in the configuration
+```
+terraform {
+  cloud {
+    organization = "ORGANIZATION-NAME"
+    workspaces {
+      name = "learn-terraform-cloud-migrate"
+    }
+  }
+  ...
+}
+```
+* Re-running init once a cloud block has been added will migrate the stte in Terraform Cloud
+```
+terraform init
+```
+* Check in Terraform Cloud that the state has actually been copied and then delete the local state file.
+```
+rm terraform.tfstate
+```
+* Subsequent commands (apply, destroy, etc.) will now rely on remote state 
+```
+terraform apply
+```
+
+### Infrastructure Management Workflows
+* 3 workflows can be used in Terraform Cloud
+  * CLI  : to manually manage the infrastucture
+  * VCS driven : to automate infrastructure management 
+  * API driven : to automate with the help of 3rd party tools
+
+* Notes about VCS-driven
+  * A Pull Request to "master" branch triggers a "speculative plan" to be reviewed before merge
+  * A merge on master branch triggers a run to apply the new configuration 
+
+### Variables
+* Variables can be defined either on a per-workspace basis, or across workspaces by grouping
+them into reusable "variable sets"
+* Variables can be from 2 types
+  * Teraform variables
+  * Environment variables 
