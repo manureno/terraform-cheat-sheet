@@ -50,11 +50,11 @@ A _Nested Module_ is a reference to another module from the current module, it c
 ```
 terraform init
 ``` 
-* Check syntax
+* Reformat Terraform scripts with standard indentation
 ```
 terraform fmt
 ```
-* Check consistency vs providers
+* Check syntax and consistency vs providers
 ```
 terraform validate
 ```
@@ -62,7 +62,7 @@ terraform validate
 ```
 terraform plan [-out=path/to/plan.file]
 ```
-* Review and apply the plan, optionally passin a plan file
+* Review and apply the plan, optionally passing a plan file
 ```
 terraform apply [path/to/plan.file]
 ```
@@ -112,8 +112,8 @@ provider "aws" {
   region  = "eu-west-3"
 }
 ```
-* aliases may be given to provider cnfiguratoin so several 
-provider configuration can be used in a same Terraform script.
+* aliases may be given to provider configurations so several 
+provider configurations can be used in the same Terraform script.
 ```
 # can be referenced as aws.paris
 provider "aws" {
@@ -146,9 +146,9 @@ resource "aws_instance" "foo" {
 * Declare variables in a .tf file
 ```
 variable "var_name" {
-  destcription = "variable used for test"
-  type         = string
-  default      = "test"
+  description = "variable used for test"
+  type        = string
+  default     = "test"
 }
 
 ``` 
@@ -193,14 +193,14 @@ terraform output output_name
 ```
 
 ## Managing State
-###State File
+### State File  
 State file terraform.tfstate contain the infrastructure state as known by Terraform.  
 It is a JSON file that should not be edited.   
 It contains:
 * **Resources**, which can be of type "data", ie a resource managed outside Terraform as a result of the query of a data block, or "managed" ie an actual resource.
 * **Dependencies**, which is the dependency tree computed out of the Terraform script.
 
-###Common Commands
+### Common Commands  
 * Show state file :
 ```
 terraform show
@@ -214,9 +214,9 @@ terraform state list
 terraform plan -replace="RESOURCE_NAME"
 ```
 ```
-terraform apply -replace RESOURCE_NAME
+terraform apply -replace="RESOURCE_NAME"
 ```
-###Advanced Commands
+### Advanced Commands
 * Copy a resource from one state to another
 ```
 terraform state mv -state-out=TARGET_STATE_FILE SOURCE_RESOURCE_NAME TARGET_RESOURCE_NAME
@@ -231,12 +231,12 @@ terraform import RESOURCE_NAME RESOURCE_ID
 ```
 * Update the state file to match the actual infrastructure
 ```
-terraform refresh
+terraform apply -refresh-only
 ```
 
-##Targeting Individual Resources
+## Targeting Individual Resources  
 In some situations, such as issue during the application of a plan, or complex infrastructure divergence,
-there ay be a need to manage resource individually.
+there ay be a need to manage resource individually.  
 NB: This is an advanced usage that need extreme care to end-up with a consistent configuration/state/infrastructure 
 
 * Apply change on a resource
@@ -270,12 +270,13 @@ terraform import RESOURCE_NAME RESOURCE_ID
 * Core errors in the Terraform application itself
 * Provider errors
 
-* Format code to check syntax errors
+
+* Format code
 ```
 terraform fmt
 ```
 
-* Check configuration in the context of providers expectations
+* Check syntax and configuration in the context of providers expectations
 ```
 terraform validate
 ```
@@ -342,5 +343,5 @@ terraform apply
 * Variables can be defined either on a per-workspace basis, or across workspaces by grouping
 them into reusable "variable sets"
 * Variables can be from 2 types
-  * Teraform variables
+  * Terraform variables
   * Environment variables 
