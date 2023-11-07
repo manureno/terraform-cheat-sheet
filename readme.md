@@ -6,6 +6,9 @@ Table of Content
   * [Providers Configuration](#provider-configuration)
   * [Lock File](#lock-file)
 * [Working With Variables](#working-with-variables)
+  * [Using Variables](#using-variables)
+  * [Lists](#lists)
+  * [Maps](#maps)
 * [Publish Output Result](#publish-output-result)
 * [Managing State](#managing-state)
   * [State File](#state-file)
@@ -143,6 +146,7 @@ resource "aws_instance" "foo" {
   * Provider no longer required 
 
 ## Working With Variables
+### Using Variables
 * Declare variables in a .tf file
 ```
 variable "var_name" {
@@ -173,6 +177,49 @@ terraform COMMAND -var-file="variables.tfvars"
 export TF_VAR_variable_name=value 
 terraform COMMAND
 ```
+### Lists
+* Declare a list 
+```
+variable "availability_zone_names" {
+  type    = list(string)
+  default = ["us-west-1a", "us-west-1c"]
+}
+```
+
+* Access list values by index
+```
+output "a_zone" {
+  value = var.availability_zone_names[0]
+}
+```
+
+### Maps
+* Declare a Map
+```
+variable "regions_map" {
+  type = map(string)
+  default = {
+    paris   = "eu-west-3"
+    ireland = "eu-west-1"
+  }
+}
+```
+
+* Static access to map values 
+```
+output "region_ireland" {
+  value = var.regions_map["ireland"]
+}
+```
+
+* Dynamic access to map value
+```
+output "region_alias" {
+  value = lookup(var.regions_map, var.alias, "Unknown alias")
+}
+```
+
+
 
 ## Publish Output Result
 * Add the desired output in a .tf file _(like output.tf)_
@@ -345,3 +392,20 @@ them into reusable "variable sets"
 * Variables can be from 2 types
   * Terraform variables
   * Environment variables 
+
+## Deprecated commands
+* taint to be replaced with 
+```
+terraform apply -replace="resource_name" 
+```
+* refresh to be replace with
+```
+terraform apply -refresh-only
+```
+
+## Other Commands
+* Unlock a state file stre on a remote backend
+```
+terraform force-unlock LOCK_ID
+```
+
