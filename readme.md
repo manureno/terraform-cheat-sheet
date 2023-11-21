@@ -28,7 +28,7 @@ Table of Content
 ```
 # Root module
 LICENSE          -> A License to be used for the project
-readme.md        -> documentation under Markdown format
+README.md        -> documentation under Markdown format
 terraform.tf     -> set TF version constraint, and provider version constraint
 variables.tf     -> declare variables required in the project
 main.tf          -> resource description
@@ -37,7 +37,8 @@ terraform.tfvars -> declare input variables loaded by default
 myconfig.tfvars  -> variables input loaded with option -var-file="myconfig.tfvars"
 outputs.tf       -> variables available as output
 # Sub modules
-modules/terraform_PROVIDER_NAME
+modules/nestedModuleA
+    README.md      -> Documentation under markdown format
     variables.tf   -> declare variables required in the project
     main.tf        -> resource description
     outputs.tf     -> variables available as output
@@ -142,7 +143,7 @@ resource "aws_instance" "foo" {
 * Lock File Change scenarios
   * Dependency on new provider, includes version/contraints/hashes
   * New version of an existing provider
-  * New provider package checksums (when new hashes scehemes are added in the repository)
+  * New provider package checksums (when new hashes schemes are added in the repository)
   * Provider no longer required 
 
 ## Working With Variables
@@ -283,7 +284,7 @@ terraform apply -refresh-only
 
 ## Targeting Individual Resources  
 In some situations, such as issue during the application of a plan, or complex infrastructure divergence,
-there ay be a need to manage resource individually.  
+there may be a need to manage resource individually.  
 NB: This is an advanced usage that need extreme care to end-up with a consistent configuration/state/infrastructure 
 
 * Apply change on a resource
@@ -404,7 +405,7 @@ terraform apply -refresh-only
 ```
 
 ## Other Commands
-* Unlock a state file stre on a remote backend
+* Unlock a state file stored on a remote backend
 ```
 terraform force-unlock LOCK_ID
 ```
