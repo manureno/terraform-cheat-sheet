@@ -1,6 +1,7 @@
 Table of Content
 * [Typical Project Structure](#typical-project-structure)
 * [Typical Workflow](#typical-workflow)
+  * [Retrieve Modules](#retrieve-modules) 
 * [Settings](#settings)
 * [Providers](#providers)
   * [Providers Configuration](#provider-configuration)
@@ -16,13 +17,19 @@ Table of Content
   * [Advanced Commands](#advanced-commands)
 * [Targeting Individual Resources](#targeting-individual-resources)
 * [Manage Resource Drift](#manage-resource-drift)
+* [Data Sources](#data-sources)
+  * [Retrieve Data](#retrieve-data)
+  * [Use Data](#use-data)
 * [Troubleshooting](#troubleshooting)
+* [CLI Workspaces](#cli-workspaces)
+* [Backends](#backends)
+  * [Local Backend](#local-backend)
 * [Terraform Cloud](#terraform-cloud)
+  * [Cloud Workspaces](#cloud-workspaces)
   * [Login to Terraform Cloud](#login-to-terraform-cloud)
   * [Migrate State to Terraform Cloud](#migrate-state-to-terraform-cloud)
   * [Infrastructure Management Workflows](#infrastructure-management-workflows)
   * [Variables](#Variables)
-
 ## Typical Project Structure
 
 ```
@@ -43,13 +50,16 @@ modules/nestedModuleA
     main.tf        -> resource description
     outputs.tf     -> variables available as output
 ```
+Terraform configuration are most of the time expressed using the HCL language in ".tf" files. JSON can be used as 
+an alternative in files named ".tf.json".
+
 Note about Modules  
 A _Nested Module_ is a reference to another module from the current module, it can be of two types
 * _Child Module_ if it is located externally
 * _Sub Module_ if it is embedded in the current workspace
 
 ## Typical Workflow
-* Create a terraform configuration
+* Create a Terraform configuration
 * Download providers, create the intermediate working files
 ```
 terraform init
@@ -74,6 +84,34 @@ terraform apply [path/to/plan.file]
 ```
 terraform destroy
 ```
+_NB : plan, apply and destroy analyze resource dependencies with a parallel processing of 10 which can be 
+increased or decreased:_
+```
+terraform [plan|apply|destroy] -parallelism=n
+```
+
+### Retrieve Modules
+
+* Module retrieval is a part of the initialization executed by
+```
+terraform init
+```
+* Modules can also be retrieved or upgraded explicitly without all the other init steps using :
+```
+terraform get
+```
+* Once the module downloaded, they can be upgraded with either init or get 
+```
+terraform init -upgrade
+```
+```
+terraform get -upgrade
+```
+* The init command expects to find a configuration in its current directory, ti can also be used from 
+an empty directory by specifying the location of the root module :
+```
+terraform init -from-module path/to/root/module
+```
 ## Settings
 * A configuration block that describes 
   * terraform version requirement
@@ -87,6 +125,7 @@ terraform {
   required_version = ">= 1.6.1"
   
   # Provider requirement
+  # NB: Provider block may be left empty
   required_providers {
     aws = {
       version = ">= 2.7.0"
@@ -257,7 +296,11 @@ terraform show
 ```
 terraform state list
 ```
-* Override state to explicitely re-create a resource 
+* Show the details of a given resource 
+```
+terraform state show RESOURCE_TYPE.RESOURCE_NAME
+```
+* Override state to explicitly re-create a resource 
 ```
 terraform plan -replace="RESOURCE_NAME"
 ```
@@ -311,6 +354,34 @@ terraform apply -refresh-only
 terraform import RESOURCE_NAME RESOURCE_ID
 ```
 
+## Data Sources
+### Retrieve Data
+Data sources allow Terraform to use information defined outside of Terraform
+Each provider may offer data sources alongside its set of resource types.
+* Find the latest available AMI that is tagged with Component = web:
+```
+data "aws_ami" "web" {
+  filter {
+    name   = "state"
+    values = ["available"]
+  }
+  filter {
+    name   = "tag:Component"
+    values = ["web"]
+  }
+  most_recent = true
+}
+```
+### Use Data
+Results from Data Source queries can be re-injected in resource definitions
+* Create an EC2 instance using the latest web AMI ID retrieved from a Data Source call: 
+```
+resource "aws_instance" "web" {
+  ami           = data.aws_ami.web.id
+  instance_type = "t1.micro"
+}
+```
+
 ## Troubleshooting
 4 types of issues
 * Language errors in the HCL scripts
@@ -319,14 +390,28 @@ terraform import RESOURCE_NAME RESOURCE_ID
 * Provider errors
 
 
-* Format code
+* Reformat code in the current dir according to Terraform conventions (2 space indent, etc).  
+_NB: use -recursive to process sub-directories_
 ```
-terraform fmt
+terraform fmt [-recursive]
+```
+* Reformat code and output the diff
+```
+terraform fmt -diff
+```
+* Check the format without modifying the code 
+```
+terraform fmt -check
 ```
 
-* Check syntax and configuration in the context of providers expectations
+* Validate syntax and configuration
 ```
 terraform validate
+```
+* Validate syntax and configuration and generate a machine-readable Json output, 
+useful for example in a CI/CD workflow
+```
+terraform validate -json
 ```
 * Enable logging with levels in (TRACE, DEBUG, INFO, WARN or ERROR)
 ```
@@ -339,7 +424,43 @@ export TF_LOG_PROVIDER=TRACE
 ```
 export TF_LOG_PATH=logs.txt
 ```
+## CLI Workspaces
+CLI workspaces isolate multiple state files in the same working directory.  
+_NB: The Terraform CLI does not require to create CLI workspaces._  
+* List all workspaces
+```
+terraform workspace list
+```
+* Create a workspace
+```
+terraform workspace new WORKSPACE_NAME
+```
+* Change the current workspace
+```
+terraform workspace select WORKSPACE_NAME
+```
+## Backends
+Backend is where Terraform store the state file
+A single backend should be used by a Terraform config, it is configure as part of the "terraform init" phase.
+A backend block cannot refer to Environment or Input variables, instead they can be configured through -backend-config option:
+```
+terraform init -backend-config="KEY=VALUE"
+```
+```
+terraform init -backend-config=/path/to/config/file
+```
+### Local Backend
+A local backend is used by default to store the state file in the current directory
+* Local backend can be configuredin te settings block
+```
+terraform {
+  backend "local" {
+    path = "relative/path/to/terraform.tfstate"
+    workspace_dir = "relative/path/to/non-default/workspaces"
+  }
+}
 
+```
 ## Terraform Cloud
 ### Login to Terraform Cloud
 * Login command will open Terraform Cloud page in a browser in order to generate an authentication token
@@ -348,6 +469,13 @@ export TF_LOG_PATH=logs.txt
 ```
 terraform login
 ```
+
+### Cloud Workspaces
+
+Terraform Cloud workspaces are required: they represent all of the collections of infrastructure in an organization.  
+You cannot manage resources in Terraform Cloud without creating at least one workspace.
+
+_NB: They differ in that from CLI workspaces._
 
 ### Migrate State to Terraform Cloud
 
