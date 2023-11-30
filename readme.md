@@ -46,7 +46,7 @@ terraform.tfvars -> declare input variables loaded by default
 *.auto.tfvars    -> declare input variables loaded by default
 myconfig.tfvars  -> variables input loaded with option -var-file="myconfig.tfvars"
 outputs.tf       -> variables available as output
-# Sub modules
+# Sub modules (aka nested modules)
 modules/nestedModuleA
     README.md      -> Documentation under markdown format
     variables.tf   -> declare variables required in the project
@@ -57,9 +57,9 @@ Terraform configuration are most of the time expressed using the HCL language in
 an alternative in files named ".tf.json".
 
 Note about Modules  
-A _Nested Module_ is a reference to another module from the current module, it can be of two types
-* _Child Module_ if it is located externally
-* _Sub Module_ if it is embedded in the current workspace
+* _Root Module_ : Resources defined in the .tf files in the main working directory.
+* _Nested Module_ : Module part of a configuration, located under ./modules
+* _Child Module_ :  A module that is called by anothrr module is called a child module
 
 ## Typical Workflow
 * Create a Terraform configuration
