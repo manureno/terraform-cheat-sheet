@@ -20,7 +20,7 @@ Table of Content
 * [Manage Resource Drift](#manage-resource-drift)
 * [Data Sources](#data-sources)
   * [Retrieve Data](#retrieve-data)
-  * [Use Data](#use-data
+  * [Use Data](#use-data)
 * [Modules](#modules) 
 * [Troubleshooting](#troubleshooting)
 * [CLI Workspaces](#cli-workspaces)
