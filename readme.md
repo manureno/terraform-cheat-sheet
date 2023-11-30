@@ -59,7 +59,7 @@ an alternative in files named ".tf.json".
 Note about Modules  
 * _Root Module_ : Resources defined in the .tf files in the main working directory.
 * _Nested Module_ : Module part of a configuration, located under ./modules
-* _Child Module_ :  A module that is called by anothrr module is called a child module
+* _Child Module_ :  A module that is called by another module is called a child module
 
 ## Typical Workflow
 * Create a Terraform configuration
@@ -122,6 +122,10 @@ terraform {
   # Terraform Cloud configuration
   cloud {
     organization = "example_corp"
+    workspaces {
+      # one of either 'tags', 'name' or 'project' parameters is mandatory 
+      name = "learn-terraform-cloud"
+    }
   }
   
   # As an alternative to TF Cloud, a backend may be used to store remote state
@@ -165,7 +169,7 @@ resource "aws_instance" "foo" {
 ```
 
 ### Lock File
-* Provider versions required by a configuration is computed during th init and stored in a .terraform.lock.hcl file
+* Provider versions required by a configuration is computed during the init and stored in a .terraform.lock.hcl file
 * Lock File Change scenarios
   * Dependency on new provider, includes version/contraints/hashes
   * New version of an existing provider
@@ -174,7 +178,7 @@ resource "aws_instance" "foo" {
 
 ### Manually Locking Providers
 Provider versions are usually locked as a side effect of terraform init.  
-There are some situations, such as using alternative providers installation (such as filesystem or network mirror) that 
+There are some situations, such as using alternative providers installation (filesystem or network mirror) that 
 may require to lock provider versions manually.  
 This can be done with :
 ```
@@ -216,6 +220,15 @@ terraform COMMAND -var-file="variables.tfvars"
 export TF_VAR_variable_name=value 
 terraform COMMAND
 ```
+
+* Terraform loads variables in the following order, with later sources taking precedence over earlier ones:
+  * Environment variables
+  * The terraform.tfvars file, if present.
+  * The terraform.tfvars.json file, if present.
+  * Any *.auto.tfvars or *.auto.tfvars.json files, processed in lexical order of their filenames.
+  * Any -var and -var-file options on the command line, in the order they are provided. (This includes variables set by a Terraform Cloud workspace.)
+  
+
 ### Lists
 * Declare a list 
 ```
@@ -492,7 +505,7 @@ terraform init -backend-config=/path/to/config/file
 ```
 ### Local Backend
 A local backend is used by default to store the state file in the current directory
-* Local backend can be configuredin te settings block
+* Local backend can be configured in the settings block
 ```
 terraform {
   backend "local" {
@@ -574,8 +587,10 @@ terraform apply -refresh-only
 ```
 
 ## Other Commands
-
-
+* Manually unlock the state for the defined configuration
+```
+terraform force-unlock LOCK_ID
+```
 ## Sentinel
 Sentinel is Policy as Code tool that allows to write policies in a high-level language
 and benefit from proven software development best practices such as versioning, automation, testing.  
