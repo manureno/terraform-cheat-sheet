@@ -6,6 +6,7 @@ Table of Content
 * [Providers](#providers)
   * [Providers Configuration](#provider-configuration)
   * [Lock File](#lock-file)
+  * [Manually Locking Providers](#manually-locking-providers)
 * [Working With Variables](#working-with-variables)
   * [Using Variables](#using-variables)
   * [Lists](#lists)
@@ -19,7 +20,8 @@ Table of Content
 * [Manage Resource Drift](#manage-resource-drift)
 * [Data Sources](#data-sources)
   * [Retrieve Data](#retrieve-data)
-  * [Use Data](#use-data)
+  * [Use Data](#use-data
+* [Modules](#modules) 
 * [Troubleshooting](#troubleshooting)
 * [CLI Workspaces](#cli-workspaces)
 * [Backends](#backends)
@@ -30,6 +32,7 @@ Table of Content
   * [Migrate State to Terraform Cloud](#migrate-state-to-terraform-cloud)
   * [Infrastructure Management Workflows](#infrastructure-management-workflows)
   * [Variables](#Variables)
+* [Sentinel](#Sentinel)
 ## Typical Project Structure
 
 ```
@@ -90,24 +93,7 @@ increased or decreased:_
 terraform [plan|apply|destroy] -parallelism=n
 ```
 
-### Retrieve Modules
-
-* Module retrieval is a part of the initialization executed by
-```
-terraform init
-```
-* Modules can also be retrieved or upgraded explicitly without all the other init steps using :
-```
-terraform get
-```
-* Once the module downloaded, they can be upgraded with either init or get 
-```
-terraform init -upgrade
-```
-```
-terraform get -upgrade
-```
-* The init command expects to find a configuration in its current directory, ti can also be used from 
+* The init command expects to find a configuration in its current directory, it can also be used from 
 an empty directory by specifying the location of the root module :
 ```
 terraform init -from-module path/to/root/module
@@ -179,11 +165,21 @@ resource "aws_instance" "foo" {
 ```
 
 ### Lock File
+* Provider versions required by a configuration is computed during th init and stored in a .terraform.lock.hcl file
 * Lock File Change scenarios
   * Dependency on new provider, includes version/contraints/hashes
   * New version of an existing provider
   * New provider package checksums (when new hashes schemes are added in the repository)
   * Provider no longer required 
+
+### Manually Locking Providers
+Provider versions are usually locked as a side effect of terraform init.  
+There are some situations, such as using alternative providers installation (such as filesystem or network mirror) that 
+may require to lock provider versions manually.  
+This can be done with :
+```
+terraform providers lock
+```
 
 ## Working With Variables
 ### Using Variables
@@ -194,8 +190,11 @@ variable "var_name" {
   type        = string
   default     = "test"
 }
-
 ``` 
+* Variable types : string, number, bool, list, set, map
+  * _NB: When no type is specified, Terraform accepts any type_
+  
+
 * Pass a variable from command line
 ```
 terraform COMMAND -var="variable_name=value"
@@ -382,6 +381,47 @@ resource "aws_instance" "web" {
 }
 ```
 
+## Modules
+Module : a group of related resources
+
+* Reference module source from public terraform registry : ```<NAMESPACE>/<NAME>/<PROVIDER>```  
+Ex: use the vpc module from the aws provider :
+```
+module "my_vpc" {
+  source  = "terraform-aws-modules/vpc/aws"
+  version = "3.18.1"
+  
+  cidr = var.vpc_cidr
+  ...
+}
+```
+
+* Reference a private registry module source : ```<HOSTNAME>/<NAMESPACE>/<NAME>/<PROVIDER>```
+```   
+module "vpc" {
+  source  = "app.terraform.io/example_corp/vpc/aws"
+  version = "1.0.4"
+}
+``` 
+
+### Retrieve Modules
+
+* Module retrieval is a part of the initialization executed by
+```
+terraform init
+```
+* Modules can also be retrieved or upgraded explicitly without all the other init steps using :
+```
+terraform get
+```
+* Once the module downloaded, they can be upgraded with either init or get 
+```
+terraform init -upgrade
+```
+```
+terraform get -upgrade
+```
+
 ## Troubleshooting
 4 types of issues
 * Language errors in the HCL scripts
@@ -439,9 +479,10 @@ terraform workspace new WORKSPACE_NAME
 ```
 terraform workspace select WORKSPACE_NAME
 ```
+* Workspaces are stored in the terraform.tfstate.d directory
 ## Backends
-Backend is where Terraform store the state file
-A single backend should be used by a Terraform config, it is configure as part of the "terraform init" phase.
+Backend is where Terraform store the state file.  
+A single backend should be used by a Terraform config, it is configured as part of the "terraform init" phase.
 A backend block cannot refer to Environment or Input variables, instead they can be configured through -backend-config option:
 ```
 terraform init -backend-config="KEY=VALUE"
@@ -533,8 +574,16 @@ terraform apply -refresh-only
 ```
 
 ## Other Commands
-* Unlock a state file stored on a remote backend
-```
-terraform force-unlock LOCK_ID
-```
 
+
+## Sentinel
+Sentinel is Policy as Code tool that allows to write policies in a high-level language
+and benefit from proven software development best practices such as versioning, automation, testing.  
+_NB : It is available in Terraform Enterprise._
+
+* Sentinel rules are applied after terraform plan and before terraform apply
+
+* 3 enforcement levels can be defined to implement pass/fail behavior
+  * Advisory
+  * Soft Mandatory
+  * Hard Mandatory
